@@ -17,12 +17,12 @@ from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Pose
-from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import TransformStamped
 
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
+from tf2_ros import TransformBroadcaster
 
 class ImageSubscriberNode(Node):
     
@@ -50,7 +50,8 @@ class ImageSubscriberNode(Node):
         model_path = os.path.join(get_package_share_directory('perception_projects'), 'rs25_8_15_2.pt')
         self.model = YOLO(model_path)
 
-        self.tf_static_broadcaster = StaticTransformBroadcaster(self)
+        # self.tf_static_broadcaster = StaticTransformBroadcaster(self)
+        self.tf_broadcaster = TransformBroadcaster(self)
 
     def receive_image(self, msg : Image):
         self.get_logger().info("Image Received")
@@ -93,13 +94,9 @@ class ImageSubscriberNode(Node):
         q = quat.from_rotation_vector(self.rvec.flatten())
         self.q_components = quat.as_float_array(q)
 
-        self.make_transforms()
+        self.pose()
 
         obj_hyp_pose = ObjectHypothesisWithPose()
-
-        obj_hyp_pose.pose.pose.position.x = float(self.tvec[0])
-        obj_hyp_pose.pose.pose.position.y = float(self.tvec[1])
-        obj_hyp_pose.pose.pose.position.z = float(self.tvec[2])
 
         obj_hyp_pose.pose.pose.position.x = float(self.tvec[0])
         obj_hyp_pose.pose.pose.position.y = float(self.tvec[1])
@@ -139,7 +136,7 @@ class ImageSubscriberNode(Node):
 
         pose_stamped = PoseStamped()
 
-        pose_stamped.header.frame_id = "pose"
+        pose_stamped.header.frame_id = "poster"
         pose_stamped.header.stamp = self.get_clock().now().to_msg()
         
         pose = Pose()
@@ -162,23 +159,27 @@ class ImageSubscriberNode(Node):
 
         self.pose_stamped_pub_.publish(pose_stamped)
 
-    def make_transforms(self):
+    def pose(self):
         t = TransformStamped()
         
         t.header.stamp = self.get_clock().now().to_msg()
-        t.header.frame_id = "world"
-        t.child_frame_id = "detected_object"
+        t.header.frame_id = "poster"
+        t.child_frame_id = "camera"
 
         t.transform.translation.x = float(self.tvec[0])
         t.transform.translation.y = float(self.tvec[1])
         t.transform.translation.z = float(self.tvec[2])
+
+        # t.transform.translation.x = 0.0
+        # t.transform.translation.y = 0.0
+        # t.transform.translation.z = 0.0
 
         t.transform.rotation.w = self.q_components[0]
         t.transform.rotation.x = self.q_components[1]
         t.transform.rotation.y = self.q_components[2]
         t.transform.rotation.z = self.q_components[3]
 
-        self.tf_static_broadcaster.sendTransform(t)
+        self.tf_broadcaster.sendTransform(t)    
 
 def main(args=None):
     rclpy.init(args=args)
