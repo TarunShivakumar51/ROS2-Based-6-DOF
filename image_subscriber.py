@@ -8,7 +8,7 @@ from vision_msgs.msg import Detection3DArray
 from vision_msgs.msg import Detection3D
 from vision_msgs.msg import ObjectHypothesis
 from vision_msgs.msg import ObjectHypothesisWithPose
-from .pose_estimation import estimate_pose
+from .pose_estimation_v2 import estimate_pose
 from ultralytics import YOLO
 import numpy as np
 import quaternion as quat
@@ -35,7 +35,7 @@ class ImageSubscriberNode(Node):
 
         self.bridge = CvBridge()
 
-        self.reference = "/home/tarun2006/ros2_ws/src/perception_projects/perception_projects/Scene2.png"
+        self.reference = "/home/tarun2006/ros2_ws/src/perception_projects/perception_projects/Scene.png"
         
         self.camera_sub_ = self.create_subscription(Image, "/camera/image_raw", self.receive_image, 1)
 
@@ -55,12 +55,12 @@ class ImageSubscriberNode(Node):
 
     def receive_image(self, msg : Image):
         self.get_logger().info("Image Received")
-        cv_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8') 
+        scene_img = self.bridge.imgmsg_to_cv2(msg, 'bgr8') 
 
-        results = self.model.predict(cv_image, save=True, imgsz=320, conf=0.25)
+        results = self.model.predict(scene_img, save=True, imgsz=320, conf=0.25)
         result = results[0]
 
-        err, pose_est = estimate_pose(self.reference, cv_image)
+        err, pose_est = estimate_pose(self.reference, scene_img)
         if err is not None or pose_est is None:
             self.get_logger().warn(f"Pose estimation failed: {err}")
             return
