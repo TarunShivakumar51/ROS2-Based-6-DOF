@@ -107,7 +107,7 @@ def estimate_pose(ref_path, scene_img):
     matches = bf.knnMatch(descriptorsRef, descriptorsScene, k=2)
 
     # Apply ratio test
-    goodMatches = [m for m, n in matches if m.distance < 0.5 * n.distance]
+    goodMatches = [m for m, n in matches if m.distance < 0.75 * n.distance]
 
     if len(goodMatches) < 4:
         return "Error: Not enough matches to compute homography.", None
@@ -130,11 +130,10 @@ def estimate_pose(ref_path, scene_img):
     if len(projected_points) < 4 or len(projected_points) < 4:
         return
     else:
-        # success, rvec, tvec = cv2.solvePnPRansac(posterPoints3D, projected_points, camera_mtx, camera_dist)
-        success, rvec, tvec, inliers = cv2.solvePnPRansac(posterPoints3D, projected_points, camera_mtx, camera_dist, flags = cv2.SOLVEPNP_IPPE_SQUARE)
+        success, rvec, tvec, inliers = cv2.solvePnPRansac(projected_points, posterPoints3D, camera_mtx, camera_dist, flags = cv2.SOLVEPNP_IPPE_SQUARE)
 
     if success:
-        rvec, tvec = cv2.solvePnPRefineVVS(posterPoints3D, projected_points, camera_mtx, camera_dist, rvec, tvec, criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 1000, term_eps))
+        rvec, tvec = cv2.solvePnPRefineVVS(projected_points, posterPoints3D, camera_mtx, camera_dist, rvec, tvec, criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 1000, term_eps))
     else:
         return "Error: Pose estimation failed.", None
 
@@ -143,7 +142,7 @@ def estimate_pose(ref_path, scene_img):
         "rvec": rvec,
         "tvec": tvec,
         "homography": M,
-        "distance_cm": np.linalg.norm(tvec)
+        "distance_m": np.linalg.norm(tvec)
     }
 
 

@@ -20,8 +20,10 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import TransformStamped
-
-from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
+from sensor_msgs.msg import CameraInfo
+from sensor_msgs.msg import RegionOfInterest
+import cv2
+import numpy as np
 from tf2_ros import TransformBroadcaster
 
 class ImageSubscriberNode(Node):
@@ -158,6 +160,42 @@ class ImageSubscriberNode(Node):
         pose_stamped.pose = pose
 
         self.pose_stamped_pub_.publish(pose_stamped)
+
+        camera = CameraInfo
+
+        camera.header = msg.header
+
+        height, width = scene_img.shape
+        camera.height = height
+        camera.width = width
+
+        camera.distortion_model = 'plumb_bob'
+        
+        camera.d = [3.06000000e-01, -1.32990000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00]
+        camera.k = [4.29625710e+03, 0.00000000e+00, 2.85032370e+03,
+                    0.00000000e+00, 4.31316960e+03, 2.21138500e+03,
+                    0.00000000e+00, 0.00000000e+00, 1.00000000e+00]
+        camera.r = [1.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0,
+                    0.0, 0.0, 1.0]
+        camera.p = [4.29625710e+03, 0.00000000e+00, 2.85032370e+03, 0.00000000e+00,
+                    0.00000000e+00, 4.31316960e+03, 2.21138500e+03, 0.00000000e+00,
+                    0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]
+        
+        camera.binning_x = 0
+        camera.binning_y = 0
+
+        roi = RegionOfInterest
+
+        roi.x_offset = 0
+        roi.y_offset = 0
+
+        roi.height = 0
+        roi.width = 0
+
+        roi.do_rectify = False
+
+        camera.roi = roi
 
     def pose(self):
         t = TransformStamped()
