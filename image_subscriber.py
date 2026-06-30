@@ -45,9 +45,9 @@ class ImageSubscriberNode(Node):
 
         self.marker_pub_ = self.create_publisher(Marker, "/pose_maker", 1)
 
-        # self.pose_pub_ = self.create_publisher(Pose, "/pose", 1)
-
         self.pose_stamped_pub_ = self.create_publisher(PoseStamped, "/pose_stamped", 1)
+
+        self.camera_info_ = self.create_publisher(CameraInfo, "/camera_info", 1)
 
         model_path = os.path.join(get_package_share_directory('perception_projects'), 'rs25_8_15_2.pt')
         self.model = YOLO(model_path)
@@ -171,6 +171,7 @@ class ImageSubscriberNode(Node):
 
         camera.distortion_model = 'plumb_bob'
         
+        # These are wrong change once the new values are created
         camera.d = [3.06000000e-01, -1.32990000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00]
         camera.k = [4.29625710e+03, 0.00000000e+00, 2.85032370e+03,
                     0.00000000e+00, 4.31316960e+03, 2.21138500e+03,
@@ -197,6 +198,8 @@ class ImageSubscriberNode(Node):
 
         camera.roi = roi
 
+        self.camera_info_.publish(camera)
+
     def pose(self):
         t = TransformStamped()
         
@@ -207,10 +210,6 @@ class ImageSubscriberNode(Node):
         t.transform.translation.x = float(self.tvec[0])
         t.transform.translation.y = float(self.tvec[1])
         t.transform.translation.z = float(self.tvec[2])
-
-        # t.transform.translation.x = 0.0
-        # t.transform.translation.y = 0.0
-        # t.transform.translation.z = 0.0
 
         t.transform.rotation.w = self.q_components[0]
         t.transform.rotation.x = self.q_components[1]
