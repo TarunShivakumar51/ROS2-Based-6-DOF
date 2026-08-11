@@ -161,32 +161,44 @@ class ImageSubscriberNode(Node):
 
         self.pose_stamped_pub_.publish(pose_stamped)
 
-        camera = CameraInfo
+        camera = CameraInfo()
 
         camera.header = msg.header
 
-        height, width = scene_img.shape
-        camera.height = height
-        camera.width = width
+        dimensions = scene_img.shape
+        hight = dimensions[0]
+        width = dimensions[1]
 
         camera.distortion_model = 'plumb_bob'
-        
+
         # These are wrong change once the new values are created
-        camera.d = [3.06000000e-01, -1.32990000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00]
-        camera.k = [4.29625710e+03, 0.00000000e+00, 2.85032370e+03,
-                    0.00000000e+00, 4.31316960e+03, 2.21138500e+03,
-                    0.00000000e+00, 0.00000000e+00, 1.00000000e+00]
-        camera.r = [1.0, 0.0, 0.0,
-                    0.0, 1.0, 0.0,
-                    0.0, 0.0, 1.0]
-        camera.p = [4.29625710e+03, 0.00000000e+00, 2.85032370e+03, 0.00000000e+00,
-                    0.00000000e+00, 4.31316960e+03, 2.21138500e+03, 0.00000000e+00,
-                    0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]
-        
+        camera.d = [
+            3.0210000e-01,   
+            -1.1210000e+00,  
+            0.0000000e+00,   
+            0.0000000e+00,   
+            0.0000000e+00,   
+        ]
+        camera.k = [
+            4.2854390e+03, 0.0000000e+00, 2.8507354e+03,
+            0.0000000e+00, 4.2845395e+03, 2.1335531e+03,
+            0.0000000e+00, 0.0000000e+00, 1.0000000e+00,
+        ]
+        camera.r = [
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0,
+        ]
+        camera.p = [
+            4.2854390e+03, 0.0000000e+00, 2.8507354e+03, 0.0000000e+00,
+            0.0000000e+00, 4.2845395e+03, 2.1335531e+03, 0.0000000e+00,
+            0.0000000e+00, 0.0000000e+00, 1.0000000e+00, 0.0000000e+00,
+        ]
+
         camera.binning_x = 0
         camera.binning_y = 0
 
-        roi = RegionOfInterest
+        roi = RegionOfInterest()
 
         roi.x_offset = 0
         roi.y_offset = 0

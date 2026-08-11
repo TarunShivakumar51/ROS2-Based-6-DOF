@@ -124,20 +124,23 @@ def estimate_pose(ref_path, scene_img):
     if M is None:
         return "Error: Homography computation failed.", None
 
-    ref_h, ref_w = imgRef.shape
+    dimensions = imgRef.shape
+    ref_w = dimensions[0]
+    ref_h = dimensions[1]
+
     pts = np.array([[0, 0], [ref_w-1, 0], [ref_w-1, ref_h-1], [0, ref_h-1]], dtype=np.float32).reshape(-1, 1, 2)
     projected_points = cv2.perspectiveTransform(pts,M)
 
     posterPoints3D = np.array([[0, 0, 0], [0.6096, 0, 0], [0.6096, 0.6096, 0], [0, 0.6096, 0]], dtype=np.float32)
 
     # Compute camera pose
-    if len(projected_points) < 4 or len(projected_points) < 4:
+    if len(projected_points) < 4:
         return
     else:
-        success, rvec, tvec, inliers = cv2.solvePnPRansac(projected_points, posterPoints3D, camera_mtx, camera_dist, flags = cv2.SOLVEPNP_IPPE_SQUARE)
+        success, rvec, tvec, inliers = cv2.solvePnPRansac(posterPoints3D, projected_points, camera_mtx, camera_dist, flags = cv2.SOLVEPNP_IPPE_SQUARE)
 
     if success:
-        rvec, tvec = cv2.solvePnPRefineVVS(projected_points, posterPoints3D, camera_mtx, camera_dist, rvec, tvec, criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 1000, term_eps))
+        rvec, tvec = cv2.solvePnPRefineVVS(posterPoints3D, projected_points, camera_mtx, camera_dist, rvec, tvec, criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_COUNT, 1000, term_eps))
     else:
         return "Error: Pose estimation failed.", None
 
